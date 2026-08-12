@@ -1,0 +1,21 @@
+{
+  "name": "money-tocka",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run start:dev --workspace=@money/api",
+    "dev:web": "npm run dev --workspace=@money/web",
+    "dev:bot": "npm run dev --workspace=@money/bot",
+    "db:generate": "npm run prisma:generate --workspace=@money/api",
+    "db:migrate": "npm run prisma:migrate --workspace=@money/api",
+    "db:push": "npm run prisma:push --workspace=@money/api",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

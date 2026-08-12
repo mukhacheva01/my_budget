@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: money-tocka-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: money
+      POSTGRES_PASSWORD: money
+      POSTGRES_DB: money_tocka
+    ports:
+      - "5433:5432"
+    volumes:
+      - money_pgdata:/var/lib/postgresql/data
+
+volumes:
+  money_pgdata:

@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum GoalStatus {
+  active
+  completed
+  archived
+}
+
+enum ContributionKind {
+  planned
+  actual
+}
+
+model User {
+  id        BigInt   @id
+  firstName String
+  lastName  String?
+  username  String?
+  phone     String?
+  currency  String   @default("RUB")
+  timezone  String?
+
+  categories Category[]
+  budgets    MonthlyBudget[]
+  expenses   Expense[]
+  goals      Goal[]
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Category {
+  id         String  @id @default(cuid())
+  userId     BigInt
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  emoji      String  @default("🍂")
+  color      String  @default("#B09398")
+  sortOrder  Int     @default(0)
+  isArchived Boolean @default(false)
+
+  budgetCategories BudgetCategory[]
+  expenses        Expense[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model MonthlyBudget {
+  id        String @id @default(cuid())
+  userId    BigInt
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  month     Int
+  year      Int
+  income    Int
+
+  categories BudgetCategory[]
+  goals      GoalContribution[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, year, month])
+  @@index([userId, year, month])
+}
+
+model BudgetCategory {
+  id         String        @id @default(cuid())
+  budgetId   String
+  budget     MonthlyBudget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  limit      Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([budgetId, categoryId])
+  @@index([budgetId])
+}
+
+model Expense {
+  id         String    @id @default(cuid())
+  userId     BigInt
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   Category  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  amount     Int
+  comment    String?
+  spentAt    DateTime
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  @@index([userId, spentAt])
+}
+
+model Goal {
+  id           String          @id @default(cuid())
+  userId       BigInt
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  emoji        String          @default("🎯")
+  imageUrl     String?
+  color        String          @default("#9B6A6C")
+  targetAmount Int
+  savedAmount  Int             @default(0)
+  deadline     DateTime?
+  status       GoalStatus      @default(active)
+
+  contributions GoalContribution[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model GoalContribution {
+  id        String            @id @default(cuid())
+  goalId    String
+  goal      Goal              @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  budgetId  String?           @map("budgetId")
+  budget    MonthlyBudget?    @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  userId    BigInt
+  kind      ContributionKind  @default(actual)
+  amount    Int
+  comment   String?
+  date      DateTime          @default(now())
+  createdAt DateTime          @default(now())
+
+  @@index([goalId])
+  @@index([budgetId])
+  @@index([userId, date])
+}
