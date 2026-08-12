@@ -20,6 +20,23 @@ bot.command('start', async (ctx) => {
   );
 });
 
+bot.command('help', async (ctx) => {
+  await ctx.reply(
+    'Мани.точка помогает планировать доход на месяц, вести расходы и копить на цели.\n\n' +
+      '1. В начале месяца создайте план.\n' +
+      '2. Распределите доход по категориям.\n' +
+      '3. Добавляйте траты вручную.\n\n' +
+      'Нажмите кнопку меню или используйте кнопку ниже, чтобы открыть приложение.',
+    { reply_markup: new InlineKeyboard().webApp('Открыть Мани.точку', appUrl) },
+  );
+});
+
+bot.command('app', async (ctx) => {
+  await ctx.reply('Открываю ваш план бюджета:', {
+    reply_markup: new InlineKeyboard().webApp('Открыть Мани.точку', appUrl),
+  });
+});
+
 bot.catch((err) => {
   console.error('Ошибка бота:', err.error);
 });

@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 import { toKopecks } from '../lib/format';
 import { haptic, mainButtonApi, notifyError, notifySuccess } from '../lib/telegram';
 import type { Category } from '../types';
+import type { Expense } from '../types';
 
 function todayInput(): string {
   const d = new Date();
@@ -17,11 +18,13 @@ export default function ExpenseSheet({
   onClose,
   categories,
   onSaved,
+  expense,
 }: {
   open: boolean;
   onClose: () => void;
   categories: Category[];
   onSaved: () => void;
+  expense?: Expense;
 }) {
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -32,12 +35,12 @@ export default function ExpenseSheet({
 
   useEffect(() => {
     if (!open) return;
-    setAmount('');
-    setSpentAt(todayInput());
-    setComment('');
+    setAmount(expense ? String(expense.amount / 100) : '');
+    setSpentAt(expense ? expense.spentAt.slice(0, 10) : todayInput());
+    setComment(expense?.comment ?? '');
     setError(null);
-    setCategoryId(categories[0]?.id ?? '');
-  }, [open, categories]);
+    setCategoryId(expense?.categoryId ?? categories[0]?.id ?? '');
+  }, [open, categories, expense]);
 
   const kopecks = toKopecks(amount);
   const valid = kopecks > 0 && !!categoryId;
@@ -47,12 +50,17 @@ export default function ExpenseSheet({
     setSaving(true);
     setError(null);
     try {
-      await api.post('/expenses', {
+      const payload = {
         amount: kopecks,
         categoryId,
         spentAt: spentAt ? new Date(spentAt).toISOString() : undefined,
         comment: comment.trim() || undefined,
-      });
+      };
+      if (expense) {
+        await api.patch(`/expenses/${expense.id}`, payload);
+      } else {
+        await api.post('/expenses', payload);
+      }
       notifySuccess();
       haptic();
       onSaved();
@@ -77,7 +85,7 @@ export default function ExpenseSheet({
   }, [open, valid, saving, amount, categoryId, spentAt, comment]);
 
   return (
-    <Sheet open={open} onClose={onClose} title="Добавить расход">
+    <Sheet open={open} onClose={onClose} title={expense ? 'Редактировать расход' : 'Добавить расход'}>
       <AmountInput big autoFocus value={amount} onChange={setAmount} />
 
       <p className="mt-4 mb-2 text-xs font-medium uppercase tracking-wide text-muted">Категория</p>

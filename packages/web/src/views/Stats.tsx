@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAppData } from '../lib/useAppData';
-import { api } from '../lib/api';
+import { api, downloadCsv } from '../lib/api';
 import MonthSwitcher from '../components/MonthSwitcher';
 import ConfirmSheet from '../components/ConfirmSheet';
+import ExpenseSheet from '../components/ExpenseSheet';
 import { fmtDay, fmtMoney } from '../lib/format';
 import { haptic, notifySuccess } from '../lib/telegram';
 import type { Expense } from '../types';
@@ -14,6 +15,7 @@ export default function Stats() {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [deleted, setDeleted] = useState<Expense | null>(null);
   const [busy, setBusy] = useState(false);
+  const [editExpense, setEditExpense] = useState<Expense | null>(null);
 
   async function load() {
     if (!view) return;
@@ -82,6 +84,13 @@ export default function Stats() {
         <p className="mt-1 text-3xl font-bold">{fmtMoney(total)}</p>
       </div>
 
+      <button
+        onClick={() => view && downloadCsv(`/expenses/export.csv?month=${view.month}&year=${view.year}`).catch(() => {})}
+        className="mt-3 block w-full rounded-full bg-palemist px-4 py-2 text-center text-sm font-semibold text-ink"
+      >
+        Скачать расходы CSV
+      </button>
+
       {filters.length > 1 && (
         <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto">
           <button
@@ -139,7 +148,10 @@ export default function Stats() {
                     </p>
                   </div>
                   <p className="font-semibold">−{fmtMoney(e.amount)}</p>
-                  <button onClick={() => setConfirmId(e.id)} className="text-sm text-muted">
+                  <button onClick={() => setEditExpense(e)} className="text-sm text-muted" aria-label="Редактировать">
+                    ✎
+                  </button>
+                  <button onClick={() => setConfirmId(e.id)} className="text-sm text-muted" aria-label="Удалить">
                     🗑
                   </button>
                 </div>
@@ -156,6 +168,14 @@ export default function Stats() {
         busy={busy}
         onConfirm={() => confirmId && remove(confirmId)}
         onClose={() => setConfirmId(null)}
+      />
+
+      <ExpenseSheet
+        open={!!editExpense}
+        expense={editExpense ?? undefined}
+        onClose={() => setEditExpense(null)}
+        categories={view?.categories.map((item) => item.category) ?? []}
+        onSaved={() => refresh()}
       />
 
       {deleted && (

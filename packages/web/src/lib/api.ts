@@ -69,3 +69,18 @@ export const api = {
   patch: <T>(path: string, body: unknown) => request<T>(path, { body }, 'PATCH'),
   del: <T>(path: string) => request<T>(path, {}, 'DELETE'),
 };
+
+export async function downloadCsv(path: string): Promise<void> {
+  let res = await fetch(`/api${path}`, { headers: token ? { authorization: `Bearer ${token}` } : {} });
+  if (res.status === 401) {
+    await login();
+    res = await fetch(`/api${path}`, { headers: token ? { authorization: `Bearer ${token}` } : {} });
+  }
+  if (!res.ok) throw new Error('Не удалось сформировать CSV');
+  const url = URL.createObjectURL(await res.blob());
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'money-tocka-expenses.csv';
+  link.click();
+  URL.revokeObjectURL(url);
+}

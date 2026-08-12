@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   NotFoundException,
   Param,
   Patch,
@@ -88,6 +89,42 @@ export class ExpensesController {
       orderBy: { spentAt: 'desc' },
       take: 200,
     });
+  }
+
+  @Get('export.csv')
+  @Header('Content-Type', 'text/csv; charset=utf-8')
+  @Header('Content-Disposition', 'attachment; filename="money-tocka-expenses.csv"')
+  async exportCsv(
+    @CurrentUser() user: AuthedUser,
+    @Query('month') month?: string,
+    @Query('year') year?: string,
+  ) {
+    const now = new Date();
+    const m = month ? Number(month) : now.getMonth() + 1;
+    const y = year ? Number(year) : now.getFullYear();
+    if (!Number.isInteger(m) || m < 1 || m > 12 || !Number.isInteger(y)) {
+      throw new BadRequestException('Некорректный период');
+    }
+    const records = await this.prisma.expense.findMany({
+      where: {
+        userId: user.id,
+        deletedAt: null,
+        spentAt: { gte: new Date(y, m - 1, 1), lt: new Date(y, m, 1) },
+      },
+      include: { category: { select: { name: true } } },
+      orderBy: { spentAt: 'asc' },
+    });
+    const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
+    const lines = [
+      ['Дата', 'Категория', 'Сумма, ₽', 'Комментарий'].map(escape).join(';'),
+      ...records.map((expense) => [
+        expense.spentAt.toLocaleDateString('ru-RU'),
+        expense.category.name,
+        (expense.amount / 100).toFixed(2).replace('.', ','),
+        expense.comment ?? '',
+      ].map(escape).join(';')),
+    ];
+    return `\uFEFF${lines.join('\n')}`;
   }
 
   @Post()

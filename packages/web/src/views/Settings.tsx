@@ -7,13 +7,33 @@ import type { User } from '../types';
 export default function Settings() {
   const { refresh } = useAppData();
   const [user, setUser] = useState<User | null>(null);
+  const [currency, setCurrency] = useState('RUB');
+  const [timezone, setTimezone] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     api
       .get<User>('/users/me')
-      .then(setUser)
+      .then((data) => {
+        setUser(data);
+        setCurrency(data.currency || 'RUB');
+        setTimezone(data.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || '');
+      })
       .catch(() => {});
   }, []);
+
+  async function saveProfile() {
+    if (saving) return;
+    setSaving(true);
+    try {
+      const updated = await api.patch<User>('/users/me', { currency, timezone });
+      setUser(updated);
+      notifySuccess();
+      haptic();
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div className="mx-auto max-w-md px-5 pt-6">
@@ -44,6 +64,19 @@ export default function Settings() {
           <span className="text-sm text-muted">Имя из Telegram</span>
           <span className="font-medium">{user?.firstName ?? '—'}</span>
         </div>
+      </div>
+
+      <div className="mt-4 rounded-card bg-white p-5 shadow-soft">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted">Региональные настройки</p>
+        <label className="mt-3 block text-sm text-muted">Валюта</label>
+        <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="mt-1 w-full rounded-2xl bg-pagebg px-4 py-3 text-sm outline-none">
+          <option value="RUB">Российский рубль (₽)</option>
+        </select>
+        <label className="mt-3 block text-sm text-muted">Часовой пояс</label>
+        <input value={timezone} onChange={(e) => setTimezone(e.target.value)} placeholder="Europe/Samara" className="mt-1 w-full rounded-2xl bg-pagebg px-4 py-3 text-sm outline-none" />
+        <button onClick={saveProfile} disabled={saving} className="mt-3 w-full rounded-full bg-rosytaupe py-3 text-sm font-semibold text-white disabled:opacity-40">
+          Сохранить настройки
+        </button>
       </div>
 
       <div className="mt-4 rounded-card bg-white p-5 shadow-soft">

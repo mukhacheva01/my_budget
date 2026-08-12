@@ -308,7 +308,7 @@ export class BudgetsService {
       await tx.goalContribution.delete({ where: { id: contributionId } });
       await tx.goal.update({
         where: { id: contribution.goalId },
-        data: { savedAmount: { decrement: contribution.amount } },
+        data: { savedAmount: { decrement: contribution.amount }, status: 'active' },
       });
     });
 
