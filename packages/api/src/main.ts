@@ -69,5 +69,15 @@ async function bootstrap() {
   const port = Number(process.env.PORT) || 3000;
   await app.listen(port);
   console.log(`API запущено: http://localhost:${port}/api`);
+
+  // Запускаем бота в том же процессе
+  if (process.env.BOT_TOKEN) {
+    try {
+      const { startBot } = await import('./bot/start-bot');
+      startBot();
+    } catch (e) {
+      console.error('Не удалось запустить бота:', e);
+    }
+  }
 }
 bootstrap();
