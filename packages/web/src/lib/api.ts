@@ -1,6 +1,6 @@
 import { getInitData } from './telegram';
 
-const TOKEN_KEY = 'money_tocka_token';
+const TOKEN_KEY = 'budget_app_token';
 let token: string | null = sessionStorage.getItem(TOKEN_KEY);
 
 function devInitData(): string {
@@ -80,7 +80,7 @@ export async function downloadCsv(path: string): Promise<void> {
   const url = URL.createObjectURL(await res.blob());
   const link = document.createElement('a');
   link.href = url;
-  link.download = 'money-tocka-expenses.csv';
+  link.download = 'budget-app-expenses.csv';
   link.click();
   URL.revokeObjectURL(url);
 }

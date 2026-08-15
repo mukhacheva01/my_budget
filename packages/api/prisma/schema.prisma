@@ -16,16 +16,24 @@ enum GoalStatus {
 enum ContributionKind {
   planned
   actual
+  adjustment
 }
 
 model User {
-  id        BigInt   @id
-  firstName String
-  lastName  String?
-  username  String?
-  phone     String?
-  currency  String   @default("RUB")
-  timezone  String?
+  id          BigInt   @id
+  firstName   String
+  lastName    String?
+  username    String?
+  phone       String?
+  currency    String   @default("RUB")
+  timezone    String?  @default("Europe/Moscow")
+  weekStartsOn Int     @default(1)
+
+  // Настройки уведомлений
+  notifyDailyReminder Boolean @default(false)
+  notifyReminderHour  Int     @default(20)
+  notifyLimitWarning  Boolean @default(false)
+  notifyMonthStart    Boolean @default(false)
 
   categories Category[]
   budgets    MonthlyBudget[]
@@ -102,6 +110,7 @@ model Expense {
   deletedAt  DateTime?
 
   @@index([userId, spentAt])
+  @@index([userId, categoryId])
 }
 
 model Goal {
@@ -115,6 +124,7 @@ model Goal {
   targetAmount Int
   savedAmount  Int             @default(0)
   deadline     DateTime?
+  note         String?
   status       GoalStatus      @default(active)
 
   contributions GoalContribution[]
@@ -123,6 +133,7 @@ model Goal {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([userId, status])
 }
 
 model GoalContribution {
@@ -141,4 +152,14 @@ model GoalContribution {
   @@index([goalId])
   @@index([budgetId])
   @@index([userId, date])
+}
+
+model NotificationLog {
+  id        String   @id @default(cuid())
+  userId    BigInt
+  type      String
+  message   String
+  sentAt    DateTime @default(now())
+
+  @@index([userId, type, sentAt])
 }

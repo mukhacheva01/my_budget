@@ -12,6 +12,8 @@ import { ExpensesModule } from './expenses/expenses.module';
 import { GoalsModule } from './goals/goals.module';
 import { UsersModule } from './users/users.module';
 import { HealthController } from './health/health.controller';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { HealthController } from './health/health.controller';
     BudgetsModule,
     ExpensesModule,
     GoalsModule,
+    AnalyticsModule,
+    NotificationsModule,
   ],
   controllers: [HealthController],
   providers: [

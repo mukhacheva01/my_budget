@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import BottomNav, { type Tab } from './components/BottomNav';
 import { AppDataProvider } from './lib/useAppData';
+import { ToastProvider } from './components/Toast';
 import { initSession } from './lib/api';
 import { backButtonApi } from './lib/telegram';
 import Home from './views/Home';
@@ -14,7 +15,14 @@ import Settings from './views/Settings';
 type SessionState = 'loading' | 'ready' | 'error';
 
 export default function App() {
-  const [tab, setTab] = useState<Tab>('home');
+  const [tab, setTab] = useState<Tab>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const start = params.get('startapp') || params.get('tgWebAppStartParam');
+    if (start === 'expense' || start === 'stats') return 'stats';
+    if (start === 'plan') return 'plan';
+    if (start === 'goals') return 'goals';
+    return 'home';
+  });
   const [session, setSession] = useState<SessionState>('loading');
 
   const startSession = () => {
@@ -42,6 +50,7 @@ export default function App() {
   if (session === 'error') return <ErrorScreen onRetry={startSession} />;
 
   return (
+    <ToastProvider>
     <AppDataProvider>
       <div className="min-h-screen bg-pagebg pb-24">
         {tab === 'home' && <Home onNavigate={setTab} />}
@@ -54,6 +63,7 @@ export default function App() {
         <BottomNav tab={tab} onChange={setTab} />
       </div>
     </AppDataProvider>
+    </ToastProvider>
   );
 }
 
@@ -63,7 +73,7 @@ function LoadingScreen() {
       <div className="flex h-16 w-16 animate-pulse items-center justify-center rounded-[24px] bg-rosytaupe text-3xl text-white">
         🍂
       </div>
-      <p className="mt-4 font-medium text-muted">Мани.точка</p>
+      <p className="mt-4 font-medium text-muted">Budget App</p>
     </div>
   );
 }

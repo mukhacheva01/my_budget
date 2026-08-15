@@ -1,3 +1,5 @@
+import { BadRequestException } from '@nestjs/common';
+
 export const KOPECKS_PER_RUBLE = 100;
 
 export function isKopecks(value: number): boolean {
@@ -6,7 +8,9 @@ export function isKopecks(value: number): boolean {
 
 export function assertKopecks(value: number, field: string): void {
   if (!isKopecks(value)) {
-    throw new Error(`${field} должен быть целым неотрицательным числом копеек`);
+    throw new BadRequestException(
+      `${field} должен быть целым неотрицательным числом (копейки)`,
+    );
   }
 }
 

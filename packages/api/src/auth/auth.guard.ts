@@ -49,7 +49,7 @@ export class AuthGuard implements CanActivate {
       return true;
     }
 
-    const initData = headers['x-init-data'] ?? req.query?.initData;
+    const initData = headers['x-init-data'];
     if (this.auth.isDevMode() && initData) {
       const tgUser = this.auth.extractUser(String(initData));
       if (tgUser) {

@@ -93,7 +93,7 @@ export class ExpensesController {
 
   @Get('export.csv')
   @Header('Content-Type', 'text/csv; charset=utf-8')
-  @Header('Content-Disposition', 'attachment; filename="money-tocka-expenses.csv"')
+  @Header('Content-Disposition', 'attachment; filename="budget-app-expenses.csv"')
   async exportCsv(
     @CurrentUser() user: AuthedUser,
     @Query('month') month?: string,

@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Patch } from '@nestjs/common';
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 import { CurrentUser, AuthedUser } from '../auth/current-user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -23,6 +23,30 @@ class UpdateProfileDto {
   @IsString()
   @MaxLength(64)
   timezone?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(6)
+  weekStartsOn?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  notifyDailyReminder?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(23)
+  notifyReminderHour?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  notifyLimitWarning?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  notifyMonthStart?: boolean;
 }
 
 @Controller('users')
@@ -43,6 +67,11 @@ export class UsersController {
         ...(body.phone !== undefined ? { phone: body.phone } : {}),
         ...(body.currency ? { currency: body.currency } : {}),
         ...(body.timezone ? { timezone: body.timezone } : {}),
+        ...(body.weekStartsOn !== undefined ? { weekStartsOn: body.weekStartsOn } : {}),
+        ...(body.notifyDailyReminder !== undefined ? { notifyDailyReminder: body.notifyDailyReminder } : {}),
+        ...(body.notifyReminderHour !== undefined ? { notifyReminderHour: body.notifyReminderHour } : {}),
+        ...(body.notifyLimitWarning !== undefined ? { notifyLimitWarning: body.notifyLimitWarning } : {}),
+        ...(body.notifyMonthStart !== undefined ? { notifyMonthStart: body.notifyMonthStart } : {}),
       },
     });
   }
