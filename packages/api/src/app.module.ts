@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from './prisma/prisma.module';
 import { CalculatorModule } from './common/calculator.module';
 import { AuthModule } from './auth/auth.module';
@@ -21,6 +22,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     ThrottlerModule.forRoot([
       { ttl: 60000, limit: 120 },
     ]),
+    ScheduleModule.forRoot(),
     PrismaModule,
     CalculatorModule,
     AuthModule,

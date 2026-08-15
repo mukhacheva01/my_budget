@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch } from '@nestjs/common';
 import { IsBoolean, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 import { CurrentUser, AuthedUser } from '../auth/current-user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
@@ -56,6 +56,12 @@ export class UsersController {
   @Get('me')
   async me(@CurrentUser() user: AuthedUser) {
     return this.prisma.user.findUnique({ where: { id: user.id } });
+  }
+
+  @Delete('me')
+  async deleteAccount(@CurrentUser() user: AuthedUser) {
+    await this.prisma.user.delete({ where: { id: user.id } });
+    return { deleted: true };
   }
 
   @Patch('me')
